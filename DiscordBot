@@ -1,0 +1,69 @@
+import discord
+import openai
+import os
+token= ""
+from discord.ext import commands
+
+intents = discord.Intents.default()
+intents.message_content = True
+bot = commands.Bot(command_prefix='!', intents=intents)
+
+openai.api_key = ''
+
+
+@bot.event
+async def on_ready():
+    print(f'We have logged in as {bot.user}')
+bot.event
+async def on_message_delete(message):
+    channel = message.channel
+    author = message.author
+    content = message.contentfsa
+    target_channel_id = 1098051155969462363
+    target_channel = bot.get_channel(target_channel_id)
+    if target_channel:
+        await target_channel.send(f"Message deleted by {author.mention} in {channel.mention}: `{content}`")
+@bot.command()    
+async def ask(ctx, *, question: str):
+    system_message = "You are a AamoghGPT, an assistant that provides helpful and accurate information. You are built off of OpenAI's gpt-3 model."
+    prompt = system_message + "\n Your query that you should respond to is: \n" + question
+    response = openai.Completion.create(engine="text-davinci-002", prompt=prompt, max_tokens=3400, temperature=1.0)
+    generated_text = response["choices"][0]["text"].strip()
+    answer = generated_text.replace(system_message, '', 1)
+    await ctx.send(answer)
+@bot.command()
+async def cursedgpt(ctx, *, question: str):
+    response = openai.Completion.create(engine="text-davinci-002", prompt=question, max_tokens=3400)
+    await ctx.send(response.choices[0].text.strip())
+
+@bot.command()
+@commands.has_permissions(kick_members=True)
+async def kick(ctx, member : discord.Member, *, reason=None):
+    try:
+        await member.send(f'You have been kicked from {ctx.guild.name}. Reason: {reason} https://discord.gg/tJVJuC3k7C')
+    except:
+        pass
+    await member.kick(reason=reason)
+    await ctx.send(f'{member.mention} has been kicked from the server')
+@bot.command()
+@commands.has_permissions(manage_roles=True) # check if user has role management permissions
+async def mute(ctx, member : discord.Member):
+    role = discord.utils.get(ctx.guild.roles, name='stfu') # get the Muted role
+    await member.add_roles(role) # assign the Muted role to the member
+    await ctx.send(f'{member.mention} has been muted')
+@bot.command()
+@commands.has_permissions(manage_roles=True) # check if user has role management permissions
+async def unmute(ctx, member : discord.Member):
+    role = discord.utils.get(ctx.guild.roles, name='stfu') # get the Muted role
+    if not role:
+        await ctx.send('Muted role not found')
+        return
+    await member.remove_roles(role) # remove the Muted role from the member
+    await ctx.send(f'{member.mention} has been unmuted')
+@bot.command()
+async def cat(ctx, *args):
+    await ctx.send('https://cataas.com/cat?620bee3e14d599001117125c.png')
+@bot.command()
+async def everyone(ctx):
+    await ctx.send('@everyone FSA MEETING NOW')
+bot.run(token)
